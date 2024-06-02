@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../components/booking.css';
 import Header from '../components/Header';
+import Profile from '../components/Profile';
 
 function MyButton() {
   return (
@@ -19,10 +20,15 @@ export default function MyApp() {
         const formattedDate = inputDate.toLocaleDateString('en-US', options);
         setSelectedDate(formattedDate);
       };
+      const [isBoxVisible, setIsBoxVisible] = useState(false);
+
+  const handleUserIconClick = () => {
+    setIsBoxVisible(!isBoxVisible);
+  };
       
   return (
     <div>
-      <Header />
+      <Header onUserIconClick={handleUserIconClick} isProfileVisible={isBoxVisible} />
       <div className="my-app">
       <div className="booking-body">
         <h1>Book Lab Session</h1>
@@ -41,6 +47,7 @@ export default function MyApp() {
           
       </div>
     </div>
+    {isBoxVisible && <Profile />}
     </div>
     </div>
     

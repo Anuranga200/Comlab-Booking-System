@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import '../components/AccountCreation.css';
 import NavBarBL from '../components/navBarBL';
 import Buttons from '../components/Buttons'
 import { Link } from 'react-router-dom';
+import { UserContext } from '../components/UserContext';
 
 
 
 export default function AccountCreation() {
+  const { setUserData } = useContext(UserContext); // Destructure setUserData
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,6 +36,7 @@ export default function AccountCreation() {
       //   },
       //   body: JSON.stringify(formData),
       // });
+      setUserData(formData); // Update user data context
       setSubmittedData(formData);
       setErrorMessage('');
 
