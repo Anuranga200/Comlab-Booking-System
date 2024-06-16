@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../components/booking.css';
 import Header from '../components/Header';
 import axios from 'axios';
 import moment from 'moment';
+import Profile from '../components/Profile';
 
 export default function MyApp() {
   const [title, setTitle] = useState("");
@@ -16,6 +17,7 @@ export default function MyApp() {
   const [errorMessage, setErrorMessage] = useState('');
   const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [users, setUsers] = useState([]);
+  const profileRef = useRef(null);
 
   const token = localStorage.getItem('token'); 
   const navigate = useNavigate();
@@ -29,7 +31,6 @@ export default function MyApp() {
       setStartTime(moment(event.start).format('HH:mm'));
       setEndTime(moment(event.end).format('HH:mm'));
       setDescription(event.description);
-      // Assuming attendees are stored in the event object, adjust as necessary
       setAttendees(event.attendees || []);
     }
   }, [location.state]);
@@ -129,7 +130,7 @@ export default function MyApp() {
       }
     }
   };
-  
+
   const handleUserIconClick = () => {
     setIsBoxVisible(!isBoxVisible);
   };
@@ -144,15 +145,15 @@ export default function MyApp() {
       <Header onUserIconClick={handleUserIconClick} isProfileVisible={isBoxVisible} />
       <div className="my-app">
         <div className="booking-body">
-            <div className="right">
-              <div className="container-11">
-                <h3>CO1 Lab Availability</h3>
-                <div className="green-rectangle">
-                  {selectedDate}
-                </div>
-                {availabilityMessage && <p className="availability-message">{availabilityMessage}</p>}
+          <div className="right">
+            <div className="container-11">
+              <h3>CO1 Lab Availability</h3>
+              <div className="green-rectangle">
+                {selectedDate}
               </div>
+              {availabilityMessage && <p className="availability-message">{availabilityMessage}</p>}
             </div>
+          </div>
           <div className="left">
             <h1>{location.state && location.state.event ? 'Edit Booking' : 'Book Lab Session'}</h1>
             <div className="form-group">
@@ -185,6 +186,7 @@ export default function MyApp() {
             </div>
           </div>
         </div>
+        {isBoxVisible && <Profile profileRef={profileRef} />}
       </div>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
     </div>

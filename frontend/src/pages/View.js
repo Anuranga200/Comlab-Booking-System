@@ -17,6 +17,8 @@ function CalendarView() {
   const [isCancelConfirmationVisible, setIsCancelConfirmationVisible] = useState(false);
   const [attendeesInput, setAttendeesInput] = useState('');
   const profileRef = useRef(null);
+  const labDetailsRef = useRef(null);
+  const [selectedNotification, setSelectedNotification] = useState(null); // Add state for selectedNotification
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,6 +48,7 @@ function CalendarView() {
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
+    setSelectedNotification(event); // Set the selected notification
   };
 
   const handleEditEvent = () => {
@@ -124,13 +127,17 @@ function CalendarView() {
   };
 
   const handleClickOutside = (event) => {
+    if (labDetailsRef.current && !labDetailsRef.current.contains(event.target)) {
+      setSelectedEvent(null);
+      setSelectedNotification(null);
+    }
     if (profileRef.current && !profileRef.current.contains(event.target)) {
       setIsBoxVisible(false);
     }
   };
 
   useEffect(() => {
-    if (isBoxVisible) {
+    if (isBoxVisible || selectedEvent) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -138,14 +145,14 @@ function CalendarView() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isBoxVisible]);
+  }, [isBoxVisible, selectedEvent]);
 
   return (
     <div>
       <Header onUserIconClick={handleUserIconClick} isProfileVisible={isBoxVisible} />
       <div className='view_body'>
         <div style={{ padding: '50px' }}>
-          <div style={{backgroundColor:'white'}}>
+          <div style={{ backgroundColor: 'white' }}>
             <Calendar
               localizer={localizer}
               events={events}
@@ -164,17 +171,17 @@ function CalendarView() {
             />
           </div>
           {selectedEvent && (
-            <div className="event-details">
+            <div className="event-details" ref={labDetailsRef}>
               <h3>{selectedEvent.title}</h3>
               <p>{selectedEvent.description}</p>
               <p>Start: {selectedEvent.start.toLocaleString()}</p>
               <p>End: {selectedEvent.end.toLocaleString()}</p>
               <p>Attendees:</p>
               <ul>
-  {selectedEvent.attendees.map((attendee, index) => (
-    <li key={index} style={{ color: 'white' }}>{attendee}</li>
-  ))}
-</ul>
+                {selectedEvent.attendees.map((attendee, index) => (
+                  <li key={index} style={{ color: 'white' }}>{attendee}</li>
+                ))}
+              </ul>
 
               <div className="button-group">
                 <button onClick={handleEditEvent}>Edit</button>
@@ -194,7 +201,7 @@ function CalendarView() {
           </div>
         )}
 
-        {isBoxVisible && <Profile profileRef={profileRef}/>}
+        {isBoxVisible && <Profile profileRef={profileRef} />}
       </div>
     </div>
   );
