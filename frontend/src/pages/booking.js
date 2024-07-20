@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../components/booking.css';
 import Header from '../components/Header';
 import axios from 'axios';
 import Profile from '../components/Profile';
+import moment from 'moment';
+import {jwtDecode} from 'jwt-decode';
 
 export default function MyApp() {
   const [title, setTitle] = useState("");
   const [attendees, setAttendees] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [formattedDate, setFormattedDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
@@ -16,9 +19,53 @@ export default function MyApp() {
   const [errorMessage, setErrorMessage] = useState('');
   const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [users, setUsers] = useState([]);
-
+  const [isPollVisible, setIsPollVisible] = useState(false);
+  const [pollDate, setPollDate] = useState("");
+  const [uEmail, setEmail] = useState("");
+  const [id, setId] = useState(""); // Added state for id
   const token = localStorage.getItem('token'); 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setEmail(decodedToken.email || ""); 
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (location.state && location.state.event) {
+      const { event } = location.state;
+      setId(event.id);
+      setTitle(event.title);
+      setSelectedDate(moment(event.start).format('YYYY-MM-DD'));
+      setStartTime(moment(event.start).format('HH:mm'));
+      setEndTime(moment(event.end).format('HH:mm'));
+      setDescription(event.description);
+      setAttendees(event.attendees || []);
+      setEmail(event.uEmail || "");
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (id) {
+      const fetchUser = async () => {
+        try {
+          const response = await axios.get(`/api/users/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const user = response.data;
+          setEmail(user.email);
+        } catch (error) {
+          console.error('Error fetching user:', error);
+        }
+      };
+      fetchUser();
+    }
+  }, [id, token]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -34,13 +81,18 @@ export default function MyApp() {
         console.error('Error fetching users:', error);
       }
     };
-
     fetchUsers();
   }, [token]);
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
 
   const handleDateChange = (event) => {
     const inputDate = event.target.value;
     setSelectedDate(inputDate);
+    setFormattedDate(formatDate(inputDate));
   };
 
   const handleCheckButton = async () => {
@@ -63,6 +115,7 @@ export default function MyApp() {
           'Authorization': `Bearer ${token}`
         }
       });
+
       console.log('Availability check response:', response.data);
       setAvailabilityMessage(response.data.message);
     } catch (error) {
@@ -81,7 +134,7 @@ export default function MyApp() {
       startTime: new Date(`${selectedDate}T${startTime}`).toISOString(),
       endTime: new Date(`${selectedDate}T${endTime}`).toISOString(),
       description,
-      attendees: attendees.map(user => user.email) // Using the selected attendees' emails
+      attendees: attendees.map(user => user.email)
     };
 
     console.log('Saving booking with data:', bookingData);
@@ -93,9 +146,53 @@ export default function MyApp() {
           'Authorization': `Bearer ${token}`
         }
       });
+
       console.log('Booking save response:', response.data);
       alert('Booking Successful');
       window.location.reload();
+
+      const bookingId = response.data._id;
+
+      if (location.state && location.state.event) {
+        await axios.delete(`/api/bookings/${location.state.event.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+
+      alert('Booking Successful');
+
+      const notificationData = {
+        title: bookingData.title,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        description: bookingData.description,
+        attendees: bookingData.attendees,
+        uEmail: uEmail,
+        uDate: new Date(`${selectedDate}`).toISOString(),
+        bookingId
+      };
+
+      console.log('Saving notification with data:', notificationData);
+
+      try {
+        const notificationResponse = await axios.post('/api/notification/createNotification', notificationData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        console.log('Notification creation response:', notificationResponse.data);
+      } catch (notificationError) {
+        console.error('Notification creation error:', notificationError);
+        if (notificationError.response && notificationError.response.data && notificationError.response.data.message) {
+          setErrorMessage(notificationError.response.data.message);
+        } else {
+          setErrorMessage('Failed to create notification');
+        }
+      }
     } catch (error) {
       console.error('Booking error:', error);
       if (error.response && error.response.data && error.response.data.message) {
@@ -115,7 +212,14 @@ export default function MyApp() {
     setAttendees(selectedOptions.map(option => JSON.parse(option.value)));
   };
 
-  // Determine the rectangle color based on availabilityMessage
+  const handlePollButtonClick = () => {
+    setIsPollVisible(true);
+  };
+
+  const handleClosePollClick = () => {
+    setIsPollVisible(false);
+  };
+
   const rectangleClass = availabilityMessage === "Time slot is available" || availabilityMessage === '' ? 'green-rectangle' : 'red-rectangle';
 
   return (
@@ -123,15 +227,16 @@ export default function MyApp() {
       <Header onUserIconClick={handleUserIconClick} isProfileVisible={isBoxVisible} />
       <div className="my-app">
         <div className="booking-body">
-            <div className="right">
-              <div className="container-11">
-                <h3>CO1 Lab Availability</h3>
-                <div className={rectangleClass}>
-                  {selectedDate}
-                </div>
-                {availabilityMessage && <p className="availability-message">{availabilityMessage}</p>}
+          <div className="right">
+            <div className={`container-11 ${isPollVisible ? 'hidden' : ''}`}>
+              <h3>CO1 Lab Availability</h3>
+              <div className={rectangleClass}>
+                <div>{formattedDate}</div>
+                <div>{startTime} - {endTime}</div>
               </div>
+              {availabilityMessage && <p className="availability-message">{availabilityMessage}</p>}
             </div>
+          </div>
           <div className="left">
             <h1>Book Lab Session</h1>
             <div className="form-group">
@@ -158,14 +263,14 @@ export default function MyApp() {
               <label htmlFor="description">Description (Optional):</label>
               <textarea id="description" name="description" rows="2" cols="30" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short Description" />
               <div className="button-container">
-                <button className="check-button" onClick={handleSave} type="submit">Save</button>
+                <button className="check-button" onClick={handleSave}>{location.state && location.state.event ? 'Save' : 'Book'}</button>
                 <button className="check-button" onClick={() => navigate('/dashboard')}>Cancel</button>
               </div>
+              {errorMessage && <p className="error-message">{errorMessage}</p>}
             </div>
           </div>
         </div>
       </div>
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
       {isBoxVisible && <Profile />}
     </div>
   );
