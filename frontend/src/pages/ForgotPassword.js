@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../components/forgotPassword.css';
-import '../components/signIn.css';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Buttons from '../components/submitButton';
 import FacultyImage from '../images/faculty.jpg';
-
+import BeatLoader from "react-spinners/BeatLoader";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -18,6 +17,15 @@ export default function ForgotPassword() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(()=>{
+    setLoading(true);
+    setTimeout(()=> {
+        setLoading(false);
+    
+    } ,500)
+    },[]);
 
   const sendData = async (e) => {
     e.preventDefault();
@@ -35,7 +43,7 @@ export default function ForgotPassword() {
   
         alert('Password updated successfully!');
         console.log('Update password response:', response.data);
-        navigate('./userSingIn');
+        navigate('/userSingIn');
       } else {
         // Handle error scenario where password or OTP does not match
         if (password !== confirmPassword) {
@@ -52,6 +60,7 @@ export default function ForgotPassword() {
   };
   
   const getCode = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`/api/users/verify-email?email=${email}`);
 
@@ -70,6 +79,8 @@ export default function ForgotPassword() {
         setErrorMessage('Server i error');
       }
       
+    }finally{
+      setLoading(false);
     }
   };
   
@@ -81,7 +92,7 @@ export default function ForgotPassword() {
 
       <div className="page-container-forgot-password">
         <div className="form-container-forgot-password">
-          <form className="form" onSubmit={sendData}>
+          <form className="form-forgot" onSubmit={sendData}>
             <h1>Change Password</h1>
             <div className="form-group-forgot-password">
               <label htmlFor="email" className="label">Enter your email address below to get the code to your inbox</label>
@@ -94,7 +105,13 @@ export default function ForgotPassword() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <Link to="#" onClick={getCode}>
+                {loading ? (
+            <div className="loading-spinner">
+              <BeatLoader color={"#000000"} loading={true} size={20} />
+            </div>
+          ) : (
                   <Buttons className="get-code-button" text="Get Code" borderRadius="10px" width="95px" />
+                )}
                 </Link>
               </div>
             </div>
@@ -106,7 +123,7 @@ export default function ForgotPassword() {
                   <input
                     type="password"
                     id="password"
-                    className="input"
+                    className="input-1"
                     placeholder="Enter the password"
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -117,7 +134,7 @@ export default function ForgotPassword() {
                   <input
                     type="password"
                     id="confirmPassword"
-                    className="input"
+                    className="input-1"
                     placeholder="Enter the password"
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
@@ -128,22 +145,23 @@ export default function ForgotPassword() {
                   <input
                     type="text"
                     id="otp"
-                    className="input"
+                    className="input-1"
                     placeholder="Enter the OTP code"
                     onChange={(e) => setInOpt(e.target.value)}
                   />
                 </div>
+                <Buttons type="submit" text="Submit" borderRadius="50px" width="125px" height="50px" marginTop="20px" />
               </>
             )}
 
             {errorMessage && <p className="error-message">{errorMessage}</p>}
-            <Buttons type="submit" text="Submit" borderRadius="50px" width="125px" height="50px" marginTop="20px" />
+            
           </form>
         </div>
         {/* Oblique line divider */}
-        <div className="oblique-line" style={{ borderColor: '#1D4C5A', borderStyle: 'solid', borderWidth: '10px', left: '12%' }}></div>
+        {/* <div className="oblique-line" style={{ borderColor: '#1D4C5A', borderStyle: 'solid', borderWidth: '10px', left: '12%' }}></div>
         <div className="oblique-line" style={{ borderColor: '#1D4C5A', borderStyle: 'solid', borderWidth: '5px', left: '15%' }}></div>
-        <div className="oblique-line" style={{ borderColor: '#1D4C5A', borderStyle: 'solid', borderWidth: '3px', left: '18%' }}></div>
+        <div className="oblique-line" style={{ borderColor: '#1D4C5A', borderStyle: 'solid', borderWidth: '3px', left: '18%' }}></div> */}
       </div>
     </div>
   );

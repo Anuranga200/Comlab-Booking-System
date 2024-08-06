@@ -16,13 +16,16 @@ function CalendarView() {
   const [isBoxVisible, setIsBoxVisible] = useState(false);
   const [isCancelConfirmationVisible, setIsCancelConfirmationVisible] = useState(false);
   const [attendeesInput, setAttendeesInput] = useState('');
+  const [currentDate, setCurrentDate] = useState(new Date()); // Add state for current date
+  const [attendeeTypes, setAttendeeTypes] = useState({});
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const [selectedMonth, setSelectedMonth] = useState(moment().format('YYYY-MM'));
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const token = localStorage.getItem('token');
         const response = await axios.get('/api/bookings', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -42,10 +45,26 @@ function CalendarView() {
     };
 
     fetchBookings();
-  }, []);
+  }, [token]);
 
-  const handleSelectEvent = (event) => {
+  const handleSelectEvent = async (event) => {
     setSelectedEvent(event);
+    try {
+      const response = await axios.get(`/api/notification/attendeesAndTypeByBookingId/${event.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const attendeeTypesData = response.data.reduce((acc, obj) => {
+        const [email, type] = Object.entries(obj)[0];
+        acc[email] = type;
+        return acc;
+      }, {});
+      setAttendeeTypes(attendeeTypesData);
+      console.log(attendeeTypesData)
+    } catch (error) {
+      console.error('Error fetching attendee types:', error);
+    }
   };
 
   const handleEditEvent = () => {
@@ -62,19 +81,22 @@ function CalendarView() {
 
   const handleConfirmCancel = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/bookings/${selectedEvent.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await axios.post(`/api/bookings/cancelLabSession/${selectedEvent.id}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         }
-      });
+      );
 
-      // Remove the selected event from the events array
+      console.log('Updated booking status:', response.data);
       const updatedEvents = events.filter((event) => event.id !== selectedEvent.id);
       setEvents(updatedEvents);
       setSelectedEvent(null); // Clear the selectedEvent state
+
     } catch (error) {
-      console.error('Error deleting booking:', error);
+      console.error('Error updating booking status:', error);
     }
 
     setIsCancelConfirmationVisible(false);
@@ -103,16 +125,32 @@ function CalendarView() {
     setAttendeesInput('');
   };
 
+  const handleMonthChange = (e) => {
+    const selectedMonth = e.target.value;
+    setSelectedMonth(selectedMonth);
+    const newDate = moment(selectedMonth).toDate();
+    setCurrentDate(newDate);
+  };
+
   const CustomToolbar = () => {
     return (
       <div className="rbc-toolbar" style={{ backgroundColor: '#A6BBC1', padding: '10px' }}>
-        <div style={{ color: '#638793', display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+        <div style={{ color: 'red', display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
           <div style={{ marginLeft: '20px' }}>
-            <div style={{ color: '#fff' }}>
-              <div style={{ backgroundColor: '#638793', width: '120px', height: '50px', marginRight: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '16px' }}>
-                {moment().format('MMMM')} {moment().format('YYYY')}
-              </div>
-            </div>
+            <select
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              style={{ padding: '5px', fontSize: '16px' }}
+            >
+              {Array.from({ length: 12 }).map((_, i) => {
+                const month = moment().month(i).format('YYYY-MM');
+                return (
+                  <option key={month} value={month}>
+                    {moment(month).format('MMMM YYYY')}
+                  </option>
+                );
+              })}
+            </select>
           </div>
         </div>
       </div>
@@ -145,13 +183,15 @@ function CalendarView() {
       <Header onUserIconClick={handleUserIconClick} isProfileVisible={isBoxVisible} />
       <div className='view_body'>
         <div style={{ padding: '50px' }}>
-          <div style={{backgroundColor:'white'}}>
+          <div style={{ backgroundColor: 'white' }}>
             <Calendar
               localizer={localizer}
               events={events}
               startAccessor="start"
               endAccessor="end"
               style={{ height: '600px' }}
+              date={currentDate}
+              onNavigate={(date) => setCurrentDate(date)}
               eventPropGetter={(event, start, end, isSelected) => ({
                 style: {
                   backgroundColor: '#00B528', // Green color
@@ -165,16 +205,22 @@ function CalendarView() {
           </div>
           {selectedEvent && (
             <div className="event-details">
+              <div className="view-close-button" onClick={() => setSelectedEvent(null)}>&times;</div> {/* Add close button */}
               <h3>{selectedEvent.title}</h3>
               <p>{selectedEvent.description}</p>
               <p>Start: {selectedEvent.start.toLocaleString()}</p>
               <p>End: {selectedEvent.end.toLocaleString()}</p>
               <p>Attendees:</p>
-              <ul>
-  {selectedEvent.attendees.map((attendee, index) => (
-    <li key={index} style={{ color: 'white' }}>{attendee}</li>
-  ))}
-</ul>
+              <div className="attendees-list">
+                {selectedEvent.attendees.map((attendee, index) => (
+                  <div
+                    key={index}
+                    className={`attendee-box ${attendeeTypes[attendee]}`}
+                  >
+                    {attendee}
+                  </div>
+                ))}
+              </div>
 
               <div className="button-group">
                 <button onClick={handleEditEvent}>Edit</button>
@@ -182,9 +228,12 @@ function CalendarView() {
               </div>
             </div>
           )}
+
+
         </div>
         {isCancelConfirmationVisible && (
           <div className="confirmation-box">
+            <div className="view-close-button" onClick={handleCancelCancel}>&times;</div> {/* Add close button */}
             <h2>Cancel scheduled lab session?</h2>
             <p>You will permanently cancel this scheduled lab session</p>
             <div className="button-group">
@@ -194,7 +243,7 @@ function CalendarView() {
           </div>
         )}
 
-        {isBoxVisible && <Profile profileRef={profileRef}/>}
+        {isBoxVisible && <Profile profileRef={profileRef} />}
       </div>
     </div>
   );

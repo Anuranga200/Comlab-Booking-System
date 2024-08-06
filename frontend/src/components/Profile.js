@@ -8,7 +8,7 @@ import axios from 'axios';
 
 export default function Profile({ profileRef }) {
   const navigate = useNavigate();
-  const [userData, setUser] = useState('');
+  const [userData, setUser] = useState([]);
   const token = localStorage.getItem('token');
   console.log('token from admin profile component:', token);
 
@@ -21,7 +21,7 @@ export default function Profile({ profileRef }) {
           }
         });
         setUser(response.data);
-        console.log('token details:', response.data);
+        console.log("setUserdata", response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
@@ -38,10 +38,15 @@ export default function Profile({ profileRef }) {
 
   const handleProfileSettingsClick = () => {
     if (userData.role === 'admin') {
-      navigate('/adminprofile');
-    } else if(userData.role === 'to') {
-      navigate('/toProfile')
-    } else {
+      navigate('/adminprofile', { state: { id: userData._id } });
+    } else if (userData.role === 'to') {
+      navigate('/toProfile', { state: { id: userData._id } })
+    } else if (userData.role === 'lecturer') {
+      navigate('/lecturerInstructorProfile', { state: { id: userData._id } })
+    } else if (userData.role === 'instructor') {
+      navigate('/lecturerInstructorProfile', { state: { id: userData._id } })
+    }
+    else {
       navigate('/');
     }
   };
@@ -54,7 +59,12 @@ export default function Profile({ profileRef }) {
   return (
     <div className='profile-container' ref={profileRef}>
       <div className='containerProfile-2'>
-        <img src={userIconProfile} alt="user-icon" className='userIconProfile' />
+        <img
+          src={`/api/images/get/${userData._id}`}
+          alt="user-icon"
+          className='userIconProfile'
+          onError={(e) => { e.target.onerror = null; e.target.src = userIconProfile; }}
+        />
         <div className='info'>
           <h4 style={{ fontSize: '24px', lineHeight: '36px', textAlign: 'center', fontWeight: '400' }}>
             {`${userData.firstName} ${userData.lastName}`}
@@ -63,8 +73,8 @@ export default function Profile({ profileRef }) {
             {userData.email}
           </h4>
         </div>
-        <Link to="/" > 
-          <Buttons text="Sign out" borderRadius="50px" width="175px" height="60px" marginTop="25px" onClick={handleSignOut}/>
+        <Link to="/" >
+          <Buttons text="Sign out" borderRadius="50px" width="175px" height="60px" marginTop="25px" onClick={handleSignOut} />
         </Link>
       </div>
       <div className='containerProfile-3'>
