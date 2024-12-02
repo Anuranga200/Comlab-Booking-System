@@ -1,4 +1,11 @@
 
+.nnn {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 .notification-container {
     display: flex;
     height: 100vh; 
@@ -8,6 +15,8 @@
   .left-side {
     flex: 0.3;
     background-color: #205464;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .toolbars {
@@ -28,6 +37,7 @@
     cursor: pointer;
     font-size: large;
   }
+
   .toolbar-button:hover {
     background-color: #638793; 
   }
@@ -37,6 +47,8 @@
     padding: 10px;
     background-color: white;
     position: relative; 
+    height: 100vh;
+    overflow-y: auto;
   }
   
   .title {
@@ -67,11 +79,6 @@
     border: 2px solid #205464;
   }
   
-  .scroll-container {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-  
   .lab-details-box {
     background-color: white;
     padding: 20px;
@@ -100,4 +107,31 @@
   .ok-button:hover {
     background-color: #638793; 
   }
+  .close-button{
+    background-color: #366574;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: medium;
+    border-radius: 5px;
+    width: 10px;
+  }
   
+  @media screen and (max-width: 762px){
+    .notification-container{
+      flex-direction: column;
+      justify-content: start;
+    }
+    .right-side{
+      width: 100%;
+      white-space: wrap;
+      overflow: auto;
+    }
+    .scroll-container{
+      overflow: auto;
+    }
+    
+    
+  }

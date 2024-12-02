@@ -5,7 +5,6 @@ import { NotificationProvider } from './NotificationContext'; // Import the Noti
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import User from './pages/User';
-import AccountCreation from './pages/signup';
 import LoginForm from './pages/signIn';
 import LabBooking from './pages/booking';
 import CalendarView from './pages/View';
@@ -21,7 +20,12 @@ import AddUser from './pages/AddUser';
 import ViewUser from './pages/ViewUser';
 import UserList from './pages/UserList';
 import EditUser from './pages/editUser';
-
+import ToHome from './pages/ToHome';
+import CalendarViewTo from './pages/ToView';
+import ToProfile from './pages/ToProfile';
+import ToNotification from './pages/ToNotification';
+import LecturerInstructorProfile from './pages/LecturerInstructorProfile';
+import EditImg from './pages/EditImg';
 
 function App() {
   return (
@@ -33,7 +37,6 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/user" element={<User />} />
-            <Route path="/signup" element={<AccountCreation />} />
             <Route path="/signin" element={<LoginForm />} />
             <Route path="/booking" element={<LabBooking />} />
             <Route path="/view" element={<CalendarView />} />
@@ -48,7 +51,12 @@ function App() {
             <Route path="/viewuser" element={<ViewUser />} />
             <Route path="/UserList" element={<UserList />} />
             <Route path="/editUser" element={<EditUser />} />
-            
+            <Route path="/toHome" element={<ToHome />} />
+            <Route path="/ToView" element={<CalendarViewTo />} />
+            <Route path="/toProfile" element={<ToProfile />} />
+            <Route path="/lecturerInstructorProfile" element={<LecturerInstructorProfile />} />
+            <Route path="toNotification" element={<ToNotification />} />
+            <Route path="/editImg" element={<EditImg />} />
           </Routes>
         </BrowserRouter>
       </div>

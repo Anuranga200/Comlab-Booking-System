@@ -1,69 +1,143 @@
-/* dashboard.css */
-/* .main-container {
-    background-color: #1A4350;
-    width: 100%;
-    flex: 1; /* Grow to fill remaining space */
-    /* display: flex;
-    justify-content: center; /* Center align horizontally */
-    /* align-items: center;  */ 
-  /* }  */
+body {
+  margin: 0; /* Remove default body margin */
+  height: 100vh; /* Ensure body height is 100% of the viewport height */
+  display: flex;
+  flex-direction: column;
+}
+
+.admin_home_main_container {
+  width: 100%;
+  height: 100vh; /* Make the main container full height of viewport */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  margin: 0; /* Remove any margin */
+  padding: 0; /* Remove any padding */
+  box-sizing: border-box;
+  
+}
+
+.admin_home_body {
+  background-color: #1A4350;
+  background-image: url('../images/adminhome_backgroundjpg.jpg');
+  background-size: cover; /* Ensure the image covers the container */
+  background-position: center; /* Center the background image */
+  background-repeat: no-repeat; /* Do not repeat the background image */
+  position: relative;
+  display: flex;
+  justify-content: center ;
+  align-items: center;
+  flex-grow: 1;
+  width: 100%;
+  margin: 0; /* Remove any margin */
+  padding: 0;
+  /* box-sizing: border-box; */
+  overflow: auto;
+}
+
+.text-container-admin-home {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  width: 100%;
+  height: auto;
+  font-family: 'Roboto Slab', serif;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.image-container-admin {
+  display: flex;
+  justify-content: center; /* Center align horizontally */
+  align-items: center; /* Center align vertically */
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Ensure the image fills the container */
+}
+
+.frontOfAdminImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensure the image covers the container */
+  border: 20px solid #205464;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.4) inset; /* Inset shadow effect */
+}
 
 
+.text-h1{
+  font-family: 'Roboto', serif;
+  font-size: 64px;
+  font-weight: 400;
+  line-height: 88px;
+  text-align: center;
+  color: white;
 
-  .admin_home_body{
-    background-color:#1A4350;
-    position: relative;
-  }
-  
-  .text-container-admin-home {
-    position: absolute; /* Position the container absolutely */
-    top: 50%; /* Position from the top */
-    left: 50%; /* Position from the left */
-    transform: translate(-50%, -50%); /* Center the container */
-    text-align: center; /* Center-align text */
-    z-index: 1; /* Ensure it appears above the image */
-    display: flex;
-    flex-direction: column; /* Stack children vertically */
-    justify-content: center; /* Center align horizontally */
-    align-items: center; /* Center align vertically */
-    margin-top: 0; /* Remove the top margin */
-    margin-bottom: 0;
-    height: 200px;
-    font-family: 'Roboto Slab', serif;
-    font-size: 32px;
-    font-weight: 400;
-    line-height: 40px;
-    text-align: center;
-    color: white;
-    white-space: nowrap;
-  }
-  
-  .image-container-admin {
-    display: flex;
-    justify-content: center; /* Center align horizontally */
-  
-  }
-  .frontOfAdminImage {
-    width: 1496px;
-    height: 585px;
-    top: 102px;
-    border: 20px solid #205464;
-    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.4) inset; /* Inset shadow effect */
-    
-  }
-  
-  
-  
-  
-  .text {
-    font-family: 'Roboto Slab', serif;
+
+}
+.text-h3{
+  font-family: 'Roboto Slab', serif;
   font-size: 32px;
   font-weight: 400;
   line-height: 40px;
   text-align: center;
   color: white;
-  white-space: nowrap;
+  /* white-space: nowrap; */
+}
+
+/* Media queries for responsiveness */
+@media screen and (max-width: 1024px) {
+  .text-h1{
+    font-size: 50px;
+    line-height: 56px;
+    padding: 10px;
   }
-  
-  
-  
+  .text-h3{
+    font-size: 24px;
+    line-height: 32px;
+    padding: 10px;
+  }
+
+  .frontOfAdminImage {
+    border-width: 10px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .text-h1{
+    font-size: 35px;
+    line-height: 38px;
+    padding: 8px;
+  }
+  .text-h3{
+    font-size: 22px;
+    line-height: 24px;
+    padding: 8px;
+  }
+
+  .frontOfAdminImage {
+    border-width: 5px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .text-h1{
+    font-size: 20px;
+    line-height: 22px;
+    padding: 5px;
+  }
+  .text-h3{
+    font-size: 10px;
+    line-height: 12px;
+    padding: 3px;
+  }
+  .frontOfAdminImage {
+    border-width: 2px;
+  }
+}

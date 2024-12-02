@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef,useEffect } from 'react';
 import HeaderAdmin from '../components/HeaderAdmin';
 import '../components/viewuser.css';
 import Profile from '../components/Profile';
@@ -6,9 +6,11 @@ import Buttons from '../components/editButton';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import {BeatLoader} from "react-spinners/BeatLoader";
 
 const token = localStorage.getItem('token');
 console.log('token from viewuser.js:', token);
+
 
 export default function ViewUser() {
   const [user_id, setUserId] = useState('');
@@ -20,6 +22,8 @@ export default function ViewUser() {
   const [textContainerText, setTextContainerText] = useState("Add User Details");
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const navigate = useNavigate();
+  const profileRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -46,6 +50,23 @@ export default function ViewUser() {
   const handleUserIconClick = () => {
     setIsBoxVisible(!isBoxVisible);
   };
+  const handleClickOutside = (event) => {
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setIsBoxVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isBoxVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isBoxVisible]);
+
 
   const handleEditButtonClick = (edituser_id) => {
     console.log('edit user button clicked for user:', edituser_id);
@@ -148,7 +169,7 @@ export default function ViewUser() {
             </tbody>
           </table>
         </div>
-        {isBoxVisible && <Profile />}
+        {isBoxVisible && <Profile profileRef={profileRef}/>}
         {showConfirmationDialog && (
           <ConfirmationDialog
             onConfirm={handleRemoveConfirmation}
